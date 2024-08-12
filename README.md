@@ -18,7 +18,7 @@ Welcome to the Magento Open Source project! [Magento Open Source](https://magent
 
 However, for those who need a full-featured eCommerce solution, we recommend [Adobe Commerce](https://magento.com/products/magento-commerce), which includes our optimized cloud architecture and hosting as well as AI-powered merchandising and analytics.
 
-<img src=" [https://www.consnet.co.za/wp-content/uploads/2022/04/Magento-eCommerce.png](https://www.consnet.co.za/wp-content/uploads/2022/04/Magento-eCommerce.png) "/>
+<img src=" (https://www.consnet.co.za/wp-content/uploads/2022/04/Magento-eCommerce.png) "/>
 
 
 
