@@ -21,15 +21,197 @@ However, for those who need a full-featured eCommerce solution, we recommend [Ad
 ![](https://www.consnet.co.za/wp-content/uploads/2022/04/Magento-eCommerce.png)
 
 
-
-
-
 ## Get started
 
 - [Quick start install](https://experienceleague.adobe.com/docs/commerce-operations/installation-guide/composer.html)
 - [System requirements](https://experienceleague.adobe.com/docs/commerce-operations/installation-guide/system-requirements.html)
 - [Prerequisites](https://experienceleague.adobe.com/docs/commerce-operations/installation-guide/prerequisites/overview.html)
-- [More installation options](https://experienceleague.adobe.com/docs/commerce-operations/installation-guide/overview.html)
+- [More installation options](https://www.thecoachsmb.com/install-magento-2-4-5-on-ubuntu-22-04-complete-guide/)
+
+To install Magento 2 with Nginx, MySQL, and an SSL certificate on Ubuntu 22.04, follow these steps:
+
+### 1. **Prepare Your System**
+
+1. **Update System Packages:**
+   ```bash
+   sudo apt update
+   sudo apt upgrade
+   ```
+
+2. **Install Required Packages:**
+   ```bash
+   sudo apt install -y curl gnupg unzip
+   ```
+
+### 2. **Install and Configure MySQL**
+
+1. **Install MySQL Server:**
+   ```bash
+   sudo apt install -y mysql-server
+   ```
+
+2. **Secure MySQL Installation:**
+   ```bash
+   sudo mysql_secure_installation
+   ```
+
+3. **Create a Database and User for Magento:**
+   ```bash
+   sudo mysql -u root -p
+   ```
+
+   ```sql
+   CREATE DATABASE magento2 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+   CREATE USER 'magento2user'@'localhost' IDENTIFIED BY 'your_password';
+   GRANT ALL PRIVILEGES ON magento2.* TO 'magento2user'@'localhost';
+   FLUSH PRIVILEGES;
+   EXIT;
+   ```
+
+### 3. **Install PHP and Extensions**
+
+1. **Add PHP Repository:**
+   ```bash
+   sudo add-apt-repository ppa:ondrej/php
+   sudo apt update
+   ```
+
+2. **Install PHP and Required Extensions:**
+   ```bash
+   sudo apt install -y php8.1 php8.1-fpm php8.1-mysql php8.1-xml php8.1-mbstring php8.1-curl php8.1-zip php8.1-intl php8.1-bcmath
+   ```
+
+### 4. **Install Composer**
+
+1. **Download and Install Composer:**
+   ```bash
+   curl -sS https://getcomposer.org/installer | php
+   sudo mv composer.phar /usr/local/bin/composer
+   ```
+
+### 5. **Install Magento 2**
+
+1. **Navigate to the Directory Where You Want to Install Magento:**
+   ```bash
+   cd /var/www/html
+   ```
+
+2. **Download Magento 2 Using Composer:**
+   ```bash
+   composer create-project --repository=https://repo.magento.com/ magento/magento2 magento2
+   ```
+
+3. **Set Correct Permissions:**
+   ```bash
+   sudo chown -R www-data:www-data /var/www/html/magento2
+   sudo find /var/www/html/magento2 -type d -exec chmod 755 {} \;
+   sudo find /var/www/html/magento2 -type f -exec chmod 644 {} \;
+   ```
+
+4. **Install Magento Using the Command Line:**
+   ```bash
+   cd /var/www/html/magento2
+   bin/magento setup:install --base-url=http://your_domain_or_ip/ \
+   --db-host=localhost --db-name=magento2 --db-user=magento2user --db-password=your_password \
+   --admin-firstname=Admin --admin-lastname=User --admin-email=admin@example.com \
+   --admin-user=admin --admin-password=admin_password \
+   --language=en_US --currency=USD --timezone=America/Chicago --use-rewrites=1
+   ```
+
+### 6. **Install and Configure Nginx**
+
+1. **Install Nginx:**
+   ```bash
+   sudo apt install -y nginx
+   ```
+
+2. **Create Nginx Configuration File for Magento:**
+   ```bash
+   sudo nano /etc/nginx/sites-available/magento2
+   ```
+
+   **Add the following configuration:**
+   ```nginx
+   server {
+       listen 80;
+       server_name your_domain_or_ip;
+       root /var/www/html/magento2/pub;
+
+       index index.php index.html index.htm;
+
+       location / {
+           try_files $uri $uri/ /index.php?$args;
+       }
+
+       location ~ ^/index\.php {
+           fastcgi_split_path_info ^(.+\.php)(/.+)$;
+           fastcgi_pass unix:/run/php/php8.1-fpm.sock;
+           fastcgi_index index.php;
+           include fastcgi_params;
+           fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+           fastcgi_param PATH_INFO $fastcgi_path_info;
+           fastcgi_param PATH_TRANSLATED $document_root$fastcgi_path_info;
+       }
+
+       location ~* \.(jpg|jpeg|gif|css|png|js|ico|xml)$ {
+           try_files $uri $uri/ =404;
+           expires max;
+           log_not_found off;
+       }
+   }
+   ```
+
+3. **Enable the Nginx Configuration and Restart Nginx:**
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/magento2 /etc/nginx/sites-enabled/
+   sudo nginx -t
+   sudo systemctl restart nginx
+   ```
+
+### 7. **Install and Configure SSL Certificate**
+
+1. **Install Certbot and Nginx Plugin:**
+   ```bash
+   sudo apt install -y certbot python3-certbot-nginx
+   ```
+
+2. **Obtain and Install SSL Certificate:**
+   ```bash
+   sudo certbot --nginx -d your_domain
+   ```
+
+   Follow the prompts to complete the SSL setup.
+
+3. **Verify SSL Certificate Renewal:**
+   ```bash
+   sudo certbot renew --dry-run
+   ```
+
+### 8. **Complete Magento Setup**
+
+1. **Update Magento Indexes and Set Up Permissions:**
+   ```bash
+   bin/magento indexer:reindex
+   bin/magento cache:clean
+   bin/magento cache:flush
+   ```
+
+2. **Access Your Magento Store:**
+   Open your web browser and navigate to `https://your_domain`.
+
+### Optional: **Secure Your Magento Installation**
+
+1. **Enable Maintenance Mode (if needed):**
+   ```bash
+   bin/magento maintenance:enable
+   ```
+
+2. **Disable Maintenance Mode:**
+   ```bash
+   bin/magento maintenance:disable
+   ```
+
+This guide sets up Magento 2 with Nginx, MySQL, and an SSL certificate. Adjust configurations based on your specific needs and ensure that your DNS settings and domain point to your server.
 
 ## Get help
 
